@@ -29,23 +29,7 @@ namespace DreamJob
         {
             InitializeComponent();
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+               
         private void StartInput(object sender, RoutedEventArgs e)
         {
             if (inputWorker.Text == "Введите имя сотрудника") inputWorker.Text = "";
@@ -115,21 +99,17 @@ namespace DreamJob
 
                     workers = workers.OrderByDescending(w => w.Salary).ToList();
                     ResultList.Items.Clear();
-
+                    // Добавление элементов списка в ListView
                     for (int i = 0; i < workers.Count; i++)
                     {
                         ResultList.Items.Add(workers[i]);
 
+                        Highlighting(workers[i]);
                     }
-                    
-                    //ResultList.Items.Refresh();
-
                 }
 
                 connection.Close();
-
             }
-
         }
 
         /// <summary>
@@ -140,6 +120,8 @@ namespace DreamJob
         private void btnSearch_Click(object sender, RoutedEventArgs e)
         {
             ResultList.SelectedItems.Clear();
+            ResultList.Items.Refresh();
+            
             if (inputWorker.Text != "Введите имя сотрудника")
                 foreach (var item in ResultList.Items)
                 {
@@ -148,22 +130,28 @@ namespace DreamJob
                         ResultList.SelectedItems.Add(item);
                     }
                 }
-
-            //Painting();
         }
 
-        void Painting()
+
+        /// <summary>
+        /// Выделение работника с зп менее 20000
+        /// </summary>
+        /// <param name="worker"></param>
+        void Highlighting(Worker worker)
         {
-            foreach (var item in ResultList.Items)
+            if (worker.Salary < 20000)
             {
-                if (((Worker)item).Salary < 20000)
+                ResultList.UpdateLayout(); // Обновление визуальных элементов
+                                           // Получение контейнера элемента, который нужно выделить
+                var itemContainer = ResultList.ItemContainerGenerator.ContainerFromItem(worker) as ListViewItem;
+                if (itemContainer != null)
                 {
-                    var itemContainer = ResultList.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
                     var brush = new BrushConverter();
-                    itemContainer.Background = (Brush)brush.ConvertFrom("#FFFF7F7F");
+                    // Выделение
+                    itemContainer.Background = (Brush)brush.ConvertFrom("#FFFFF1F1");
                 }
             }
-
         }
+
     }
 }

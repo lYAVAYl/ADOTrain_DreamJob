@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:DreamJob"
         mc:Ignorable="d"
         Title="DreamJob" MinHeight="450" MinWidth="800">
-    <Grid>
+    <Grid Background="White">
         <ComboBox x:Name="CashFilter" HorizontalAlignment="Left" VerticalAlignment="Top" Width="160" Margin="30,124,0,0" Height="30">
             <Label Content="Средняя за месяц"/>
             <Label Content="Максимальная за месяц"/>
@@ -20,7 +20,7 @@
         <Label Content="Фильтр зарплаты" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,95,0,0" FontSize="14" FontFamily="Arial"/>
         <Button x:Name="btnShowResults" Content="Показать" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" FontSize="14" FontFamily="Arial" Margin="30,210,0,0" Height="30" Click="btnShowResults_Click"/>
 
-        <ListView x:Name="ResultList" HorizontalAlignment="Left" Margin="200,70,0,74.333" Width="550" Foreground="Black">
+        <ListView x:Name="ResultList" HorizontalAlignment="Left" Margin="200,70,0,74.333" Width="550" Foreground="Black" Background="White" FontFamily="Arial" FontSize="14">
             <ListView.Resources>
                 <Style TargetType="{x:Type ListViewItem}">
                     <Style.Triggers>
