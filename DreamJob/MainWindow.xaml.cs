@@ -16,6 +16,7 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Windows.Controls.Primitives;
 
+
 namespace DreamJob
 {
     /// <summary>
@@ -23,27 +24,36 @@ namespace DreamJob
     /// </summary>
     public partial class MainWindow : Window
     {
-        List<Worker> workers = new List<Worker>();
-
+        
         public MainWindow()
         {
             InitializeComponent();
+            ShowAllStaff();
         }
-               
+
+        // Создания строки подключения с помощью объекта-построителя
+        private SqlConnectionStringBuilder cnStringBuilder = new SqlConnectionStringBuilder
+        {
+            InitialCatalog = "DreamJob",
+            DataSource = "DESKTOP-5D0552Q",
+            ConnectTimeout = 30,
+            IntegratedSecurity = true
+        };
+
         private void StartInput(object sender, RoutedEventArgs e)
         {
-            if (inputWorker.Text == "Введите имя сотрудника") inputWorker.Text = "";
-            inputWorker.Foreground = Brushes.Black;
+            if (findWorkerInput.Text == "Введите имя сотрудника") findWorkerInput.Text = "";
+            findWorkerInput.Foreground = Brushes.Black;
         }
 
         private void StopInput(object sender, RoutedEventArgs e)
         {
-            if (inputWorker.Text.Trim() == "")
+            if (findWorkerInput.Text.Trim() == "")
             {
                 var brush = new BrushConverter();
-                inputWorker.Foreground = (Brush)brush.ConvertFrom("#FF969696");
+                findWorkerInput.Foreground = (Brush)brush.ConvertFrom("#FF969696");
 
-                inputWorker.Text = "Введите имя сотрудника";
+                findWorkerInput.Text = "Введите имя сотрудника";
             }
         }
 
@@ -56,16 +66,7 @@ namespace DreamJob
         }
 
         private void btnShowResults_Click(object sender, RoutedEventArgs e)
-        {
-            // Создания строки подключения с помощью объекта-построителя
-            var cnStringBuilder = new SqlConnectionStringBuilder
-            {
-                InitialCatalog = "DreamJob",
-                DataSource = "DESKTOP-5D0552Q",
-                ConnectTimeout = 30,
-                IntegratedSecurity = true
-            };
-
+        {   
             using (SqlConnection connection = new SqlConnection())
             {
                 connection.ConnectionString = cnStringBuilder.ConnectionString;
@@ -77,35 +78,40 @@ namespace DreamJob
                 if (ShowDissmised.IsChecked != true)
                     showDissmised = "WHERE Staff.Active = 'True'";
 
-                string sql = $"SELECT Staff.WorkerName, {(CashFilter.Text == "Средняя за месяц" ? "AVG" : "MAX")}(Paymants.Salary) AS 'Зарплата'\n" +
+                // Фильтр отображения зп (средняя или максимальная)
+                string filter = (CashFilter.Text == "Средняя за месяц" ? "AVG" : "MAX");
+
+                // Запрос выборки к БД
+                string sql = $"SELECT Staff.WorkerName, {filter}(Paymants.Salary)\n" +
                             "FROM Staff\n" +
                             "LEFT OUTER JOIN Paymants ON Staff.WorkerID = Paymants.WorkerID\n" +
                             $"{showDissmised}\n" +
                             "GROUP BY Staff.WorkerName, MONTH(Paymants.CashDate)\n" +
-                            "ORDER BY MONTH(Paymants.CashDate)";
+                            $"ORDER BY  {filter}(Paymants.Salary) DESC";
                 SqlCommand myCommand = new SqlCommand(sql, connection);
 
                 // Получить объект чтения данных с помощью ExecuteReader()
                 using (SqlDataReader myDataReader = myCommand.ExecuteReader())
                 {
-                    workers.Clear();
+                    ResultList.Items.Clear();
 
                     while (myDataReader.Read())
                     {
+                        // Получить имя сотрутника
                         string name = myDataReader.GetValue(0).ToString();
-                        var salary = myDataReader.GetValue(1) == DBNull.Value ? 0 : myDataReader.GetValue(1);
-                        workers.Add(new Worker(name, (double)Math.Round(Convert.ToDecimal(salary), 2)));
+
+                        // Проверка наличия выплат зп в текущем месяце
+                        // если NULL, то 0
+                        // иначе перевести в double и округлить до 2 знаков после запятой
+                        double salary = myDataReader.GetValue(1) == DBNull.Value ? 0 : Math.Round(Convert.ToDouble(myDataReader.GetValue(1)),2);
+                        
+                        ResultList.Items.Add(new Worker(name, salary));
+
+                        if (salary < 20000)
+                            Highlighting((Worker)ResultList.Items[ResultList.Items.Count-1], "#FFF68080");
+
                     }
 
-                    workers = workers.OrderByDescending(w => w.Salary).ToList();
-                    ResultList.Items.Clear();
-                    // Добавление элементов списка в ListView
-                    for (int i = 0; i < workers.Count; i++)
-                    {
-                        ResultList.Items.Add(workers[i]);
-
-                        Highlighting(workers[i]);
-                    }
                 }
 
                 connection.Close();
@@ -119,39 +125,89 @@ namespace DreamJob
         /// <param name="e"></param>
         private void btnSearch_Click(object sender, RoutedEventArgs e)
         {
+            // Очистить список выбранных элементов
             ResultList.SelectedItems.Clear();
+            // Сбросить выделения
             ResultList.Items.Refresh();
             
-            if (inputWorker.Text != "Введите имя сотрудника")
+            if (findWorkerInput.Text != "Введите имя сотрудника")
                 foreach (var item in ResultList.Items)
                 {
-                    if (((Worker)item).Name.ToLower().Contains(inputWorker.Text.ToLower()))
+                    if (((Worker)item).Salary < 20000) Highlighting((Worker)item, "#FFF68080");
+
+                    if (((Worker)item).Name.ToLower().Contains(findWorkerInput.Text.ToLower()))
                     {
                         ResultList.SelectedItems.Add(item);
+                        Highlighting((Worker)item, "#FF99B4D1");
                     }
                 }
+
         }
 
 
         /// <summary>
-        /// Выделение работника с зп менее 20000
+        /// Выделение элемента списка
         /// </summary>
-        /// <param name="worker"></param>
-        void Highlighting(Worker worker)
+        /// <param name="worker">Элемент ListView, который надо выделить</param>
+        /// <param name="color">Цвет выделения</param>
+        void Highlighting(Worker worker, string color)
         {
-            if (worker.Salary < 20000)
+            ResultList.UpdateLayout(); // Обновление визуальных элементов
+
+            // Получение контейнера элемента, который нужно выделить
+            var itemContainer = ResultList.ItemContainerGenerator.ContainerFromItem(worker) as ListViewItem;
+            if (itemContainer != null)
             {
-                ResultList.UpdateLayout(); // Обновление визуальных элементов
-                                           // Получение контейнера элемента, который нужно выделить
-                var itemContainer = ResultList.ItemContainerGenerator.ContainerFromItem(worker) as ListViewItem;
-                if (itemContainer != null)
-                {
-                    var brush = new BrushConverter();
-                    // Выделение
-                    itemContainer.Background = (Brush)brush.ConvertFrom("#FFFFF1F1");
-                }
+                var brush = new BrushConverter();
+                // Выделение 
+                itemContainer.Background = (Brush)brush.ConvertFrom(color);
             }
         }
 
+        private void findWorkerInput_Focus(object sender, RoutedEventArgs e)
+        {
+            if (findWorkerInput.Text == "Добавить сотрудника") findWorkerInput.Text = "";
+            findWorkerInput.Foreground = Brushes.Black;
+        }
+
+        private void findWorkerInput_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (findWorkerInput.Text == "") findWorkerInput.Text = "Добавить сотрудника";
+            findWorkerInput.Foreground = Brushes.Gray;
+        }
+
+
+        private void ShowAllStaff()
+        {
+            using (SqlConnection connection = new SqlConnection())
+            {
+                connection.ConnectionString = cnStringBuilder.ConnectionString;
+
+                connection.Open();
+
+                // Запрос выборки к БД
+                string sql = $"SELECT * FROM Staff";
+                SqlCommand myCommand = new SqlCommand(sql, connection);
+
+                // Получить объект чтения данных с помощью ExecuteReader()
+                using (SqlDataReader myDataReader = myCommand.ExecuteReader())
+                {
+                    while (myDataReader.Read())
+                    {
+                        // Получить имя сотрутника
+                        int id = Convert.ToInt32(myDataReader.GetValue(0).ToString());
+                        string name = myDataReader.GetValue(1).ToString();
+                        bool active = myDataReader.GetValue(2).ToString() == "True" ? true : false;
+
+                        
+                        StaffList.Items.Add(new Staff(id, name, active));
+                    }
+
+                }
+
+                connection.Close();
+            }
+
+        }
     }
 }

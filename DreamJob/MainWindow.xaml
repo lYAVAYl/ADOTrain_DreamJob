@@ -5,22 +5,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DreamJob"
         mc:Ignorable="d"
-        Title="DreamJob" MinHeight="450" MinWidth="800">
-    <Grid Background="White">
-        <ComboBox x:Name="CashFilter" HorizontalAlignment="Left" VerticalAlignment="Top" Width="160" Margin="30,124,0,0" Height="30">
+        Title="DreamJob" MinHeight="620" MinWidth="800" Height="620">
+    <Grid Background="White" >
+        <ComboBox x:Name="CashFilter" HorizontalAlignment="Left" VerticalAlignment="Top" Width="160" Margin="20,65,0,0" Height="30" FontFamily="Arial" FontSize="14">
             <Label Content="Средняя за месяц"/>
             <Label Content="Максимальная за месяц"/>
         </ComboBox>
 
 
-        <TextBox x:Name="inputWorker" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="Введите имя сотрудника" VerticalAlignment="Top" Width="400" Margin="160,35,0,0" FontSize="14" FontFamily="Arial" GotFocus="StartInput" LostFocus="StopInput" PreviewTextInput="CheckLetter" Foreground="#FF969696"/>
-        <CheckBox x:Name="ShowDissmised" Content="Показать уволенных" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,70,0,0" FontSize="14" FontFamily="Arial" IsChecked="False"/>
-        <Label Content="Поиск сотрудника:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,30,0,0" FontSize="14" FontFamily="Arial"/>
-        <Button x:Name="btnSearch" Content="Поиск" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="563,35,0,0" Height="24" FontSize="14" FontFamily="Arial" Click="btnSearch_Click"/>
-        <Label Content="Фильтр зарплаты" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,95,0,0" FontSize="14" FontFamily="Arial"/>
-        <Button x:Name="btnShowResults" Content="Показать" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" FontSize="14" FontFamily="Arial" Margin="30,210,0,0" Height="30" Click="btnShowResults_Click"/>
+        <TextBox x:Name="findWorkerInput" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="Введите имя сотрудника" VerticalAlignment="Top" Width="428" Margin="240,35,0,0" FontSize="14" FontFamily="Arial" GotFocus="StartInput" LostFocus="StopInput" PreviewTextInput="CheckLetter" Foreground="#FF969696"/>
+        <CheckBox x:Name="ShowDissmised" Content="Показать уволенных" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,180,0,0" FontSize="14" FontFamily="Arial" IsChecked="False"/>
+        <Button x:Name="btnSearch" Content="Поиск" HorizontalAlignment="Left" VerticalAlignment="Top" Width="74" Margin="676,35,0,0" Height="24" FontSize="14" FontFamily="Arial" Click="btnSearch_Click"/>
+        <Label Content="Фильтр зарплаты" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,35,0,0" FontSize="14" FontFamily="Arial"/>
+        <Button x:Name="btnShowResults" Content="Показать" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" FontSize="14" FontFamily="Arial" Margin="20,210,0,0" Height="30" Click="btnShowResults_Click"/>
 
-        <ListView x:Name="ResultList" HorizontalAlignment="Left" Margin="200,70,0,74.333" Width="550" Foreground="Black" Background="White" FontFamily="Arial" FontSize="14">
+        <ListView x:Name="ResultList" HorizontalAlignment="Left" Margin="240,70,0,60.667" Width="510" Foreground="Black" Background="{x:Null}" FontFamily="Arial" FontSize="14">
             <ListView.Resources>
                 <Style TargetType="{x:Type ListViewItem}">
                     <Style.Triggers>
@@ -38,6 +37,16 @@
                 </GridView>
             </ListView.View>
         </ListView>
+        <ListView x:Name="StaffList" HorizontalAlignment="Left" Width="210" Margin="20,290,0,60.667">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=ID}">ID</GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">Сотрудник</GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=IsActive}">В штате</GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Label Content="Список сотрудников" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="53,263,0,0" Width="144" FontSize="14" FontFamily="Arial"/>
 
     </Grid>
 </Window>

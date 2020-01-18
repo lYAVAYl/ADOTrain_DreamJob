@@ -6,21 +6,23 @@ using System.Threading.Tasks;
 
 namespace DreamJob
 {
-    class Worker
+    class Staff
     {
+        public int ID { get; set; }
         public string Name { get; set; }
-        public double Salary { get; set; }
+        public bool IsActive { get; set; }
 
-        public Worker(string setName = "No Name", double setSalary = 0)
+        public Staff(int id, string name, bool active)
         {
-            Name = setName;
-            Salary = setSalary;
+            ID = id; 
+            Name = name; 
+            IsActive = active;
         }
 
 
         public override string ToString()
         {
-            return $"[{Name}] [{Salary}]";
+            return $"[{ID}] [{Name}] [{IsActive}]";
         }
     }
 }
